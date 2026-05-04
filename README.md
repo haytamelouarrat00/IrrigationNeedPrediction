@@ -1,8 +1,38 @@
 # Predicting Irrigation Need
 
+![Balanced Accuracy](https://img.shields.io/badge/balanced_accuracy-0.9721-2563eb?style=flat-square)
+![Models](https://img.shields.io/badge/ensemble-LGBM_%2B_XGB_%2B_CatBoost-1f6feb?style=flat-square)
+![Python](https://img.shields.io/badge/python-3.13-3776ab?style=flat-square&logo=python&logoColor=white)
+![uv](https://img.shields.io/badge/managed_by-uv-de5fe9?style=flat-square)
+![Kaggle](https://img.shields.io/badge/Kaggle-Playground_S6E4-20beff?style=flat-square&logo=kaggle&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+
+> **TL;DR** — Reverse-engineered the synthetic label rule into a single `formula_score` feature, tuned per-class probability weights directly against balanced accuracy on a 92/7/1 split, and blended LightGBM + XGBoost to **0.9721 OOF balanced accuracy**.
+
 Kaggle Playground Series — Season 6, Episode 4. Three-class classification (`Low` / `Medium` / `High`) on a synthetic agricultural dataset; the metric is **balanced accuracy** on a heavily imbalanced label distribution (~92% / 7% / 1%).
 
 This repo contains my full solution: feature engineering, three GBM backbones (LightGBM, XGBoost, CatBoost) trained on identical 5-fold splits, a per-class probability-weight tuner that targets balanced accuracy directly, and a decoupled blend search.
+
+## Pipeline
+
+```mermaid
+flowchart LR
+    A[Raw CSV<br/>630k rows] --> B[Feature engineering<br/>physical + formula_score]
+    B --> C1[LightGBM<br/>5-fold]
+    B --> C2[XGBoost<br/>5-fold GPU]
+    B --> C3[CatBoost<br/>5-fold GPU]
+    C1 --> D[OOF probabilities]
+    C2 --> D
+    C3 --> D
+    D --> E[Blend search<br/>0.55 LGBM + 0.45 XGB]
+    E --> F[Per-class weight tuner<br/>Nelder-Mead on balanced acc]
+    F --> G[Submission<br/>0.9721 OOF]
+
+    style A fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b
+    style B fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    style F fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    style G fill:#dcfce7,stroke:#16a34a,color:#14532d
+```
 
 ## Results
 
@@ -18,6 +48,12 @@ OOF = balanced accuracy on out-of-fold predictions, after tuning per-class proba
 | **Blend** (0.55 LGBM + 0.45 XGB) | — | — | 0.9721 | _TBD_ | _TBD_ |
 
 Final standing: _TBD_ / _TBD_ teams.
+
+### What the model learned
+
+![Top 15 feature importances](assets/feature_importance.png)
+
+The reverse-engineered `formula_score` dominates by an order of magnitude on a log scale — every other feature, including raw `Rainfall_mm` and `Soil_Moisture`, sits at least 100× lower in gain.
 
 ## Approach
 
@@ -43,7 +79,8 @@ Final standing: _TBD_ / _TBD_ teams.
 - **CatBoost dragged the blend down** despite being competitive solo. The optimal 3-way blend dropped CatBoost entirely (`no_cb` = 0.55 LGBM + 0.45 XGB), suggesting LGBM and XGB had more diverse error modes.
 - **Multiclass target encoding helped less than expected.** TE features ranked top-3 by gain, but they were redundant with the raw `formula_score` — a depth-8 LGBM already learned the rule directly. TE would likely matter more for shallower trees.
 
-## Repository structure
+<details>
+<summary><b>Repository structure</b></summary>
 
 ```
 src/
@@ -58,9 +95,14 @@ src/
   ensemble.py       # blend OOF probabilities + re-tune weights
 notebooks/
   01_eda.ipynb      # initial exploration
+scripts/
+  plot_importance.py # render assets/feature_importance.png
 data/               # competition data (gitignored)
 submissions/        # OOF arrays, test predictions, summaries (gitignored)
+assets/             # README images
 ```
+
+</details>
 
 ## Reproducing
 
