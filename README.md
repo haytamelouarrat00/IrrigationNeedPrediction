@@ -39,15 +39,15 @@ flowchart LR
 OOF = balanced accuracy on out-of-fold predictions, after tuning per-class probability weights.
 
 | Model | Features | OOF (argmax) | OOF (tuned) | Public LB | Private LB |
-|---|---|---:|---:|---:|---:|
-| LightGBM v0 | base only | 0.9619 | 0.9718 | _TBD_ | _TBD_ |
-| LightGBM v1 | + engineered | 0.9627 | **0.9721** | _TBD_ | _TBD_ |
-| LightGBM v2 | + target encoding | 0.9626 | 0.9720 | _TBD_ | _TBD_ |
-| XGBoost v0  | base only | 0.9622 | 0.9714 | _TBD_ | _TBD_ |
-| CatBoost v0 | base only | 0.9587 | 0.9686 | _TBD_ | _TBD_ |
-| **Blend** (0.55 LGBM + 0.45 XGB) | — | — | 0.9721 | _TBD_ | _TBD_ |
+|---|---|---:|---:|----------:|---:|
+| LightGBM v0 | base only | 0.9619 | 0.9718 |     _TBD_ | _TBD_ |
+| LightGBM v1 | + engineered | 0.9627 | **0.9721** |      1045 | _TBD_ |
+| LightGBM v2 | + target encoding | 0.9626 | 0.9720 |     _TBD_ | _TBD_ |
+| XGBoost v0  | base only | 0.9622 | 0.9714 |     _TBD_ | _TBD_ |
+| CatBoost v0 | base only | 0.9587 | 0.9686 |     _TBD_ | _TBD_ |
+| **Blend** (0.55 LGBM + 0.45 XGB) | — | — | 0.9721 |     _TBD_ | _TBD_ |
 
-Final standing: _TBD_ / _TBD_ teams.
+Final standing: 1045 / 5072 teams.
 
 ### What the model learned
 
